@@ -1,4 +1,4 @@
-# Depth Chart Implementation Guide
+# Depth Chart Implementation Guide [(ko)](./readme.md)
 
 ## [Start with vercel](https://depth-chart-playground.vercel.app/)
 
@@ -344,13 +344,6 @@ const processOrderBookData = (buyOrders, sellOrders) => {
   return { buyOrders: processedBuyOrders, sellOrders: processedSellOrders };
 };
 ```
-
-## Performance Considerations
-
-1. **Canvas Re-rendering**: Only re-render when data or hover state changes
-2. **Mouse Event Throttling**: Consider throttling mouse move events for better performance
-3. **Point Detection**: Use efficient algorithms for finding nearest points
-4. **Memory Management**: Clean up event listeners in useEffect cleanup
 
 ## Customization Options
 
