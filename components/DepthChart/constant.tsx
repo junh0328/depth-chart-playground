@@ -1,7 +1,6 @@
-// Generate dummy data for buy orders (bids) - 15 levels
-
 import { OrderBookWithRatio } from './type';
 
+// Generate dummy data for buy orders (bids) - 15 levels
 // Total buy volume: 10.0 BTC, Total sell volume: 8.0 BTC, Combined total: 18.0 BTC
 export const buyRowsWithRatio: OrderBookWithRatio[] = [
   {
@@ -96,7 +95,6 @@ export const buyRowsWithRatio: OrderBookWithRatio[] = [
   }, // ~0.556
 ];
 
-// Generate dummy data for sell orders (asks) - 15 levels
 export const sellRowsWithRatio: OrderBookWithRatio[] = [
   {
     price: '95600',
