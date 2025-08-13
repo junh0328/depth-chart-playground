@@ -442,7 +442,7 @@ const BasicDepthChart = ({
         return () => {};
       }
     },
-    [hoverIndex, mode, hoverSide]
+    [hoverIndex, mode, hoverSide, palette.grey]
   );
 
   useEffect(() => {
@@ -485,7 +485,7 @@ const BasicDepthChart = ({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          gap: 2,
+          gap: { xs: 1, sm: 2 },
           flexWrap: 'wrap',
         }}
       >
@@ -498,7 +498,7 @@ const BasicDepthChart = ({
             />
           }
           label="Grid"
-          sx={{ fontSize: '12px' }}
+          sx={{ fontSize: { xs: '10px', sm: '12px' } }}
         />
         <FormControlLabel
           control={
@@ -509,7 +509,7 @@ const BasicDepthChart = ({
             />
           }
           label="Points"
-          sx={{ fontSize: '12px' }}
+          sx={{ fontSize: { xs: '10px', sm: '12px' } }}
         />
         <FormControlLabel
           control={
@@ -520,7 +520,7 @@ const BasicDepthChart = ({
             />
           }
           label="Center"
-          sx={{ fontSize: '12px' }}
+          sx={{ fontSize: { xs: '10px', sm: '12px' } }}
         />
       </Box>
 
@@ -528,7 +528,7 @@ const BasicDepthChart = ({
         sx={{
           mb: 1,
           textAlign: 'center',
-          fontSize: '14px',
+          fontSize: { xs: '12px', sm: '14px' },
           fontWeight: 'bold',
         }}
       >
@@ -590,8 +590,10 @@ const BasicDepthChart = ({
           mt: 1,
           display: 'flex',
           justifyContent: 'space-between',
-          fontSize: '12px',
+          fontSize: { xs: '10px', sm: '12px' },
           color: 'text.secondary',
+          flexWrap: 'wrap',
+          gap: 1,
         }}
       >
         <span style={{ color: dummyTheme.upColor }}>
