@@ -1,5 +1,7 @@
 # Depth Chart Implementation Guide
 
+## [Start with vercel](https://depth-chart-playground.vercel.app/)
+
 ## Overview
 
 A depth chart is a visual representation of order book data that shows the cumulative buy and sell orders at different price levels. It helps traders understand market liquidity and potential support/resistance levels.
@@ -13,6 +15,7 @@ Raw Order Book Data → Data Processing → Canvas Rendering → User Interactio
 ```
 
 #### Step 1: Data Preparation
+
 ```typescript
 // Raw order book data
 const rawBuyOrders = [
@@ -31,6 +34,7 @@ const buyOrdersWithRatio = calculateRatios(buyOrdersWithTotal);
 ```
 
 #### Step 2: Canvas Setup
+
 ```typescript
 const initCanvas = ({canvas, enableGridLine, enablePlot, enableDrawCenterLine}) => {
   // 1. Get canvas context and setup high-DPI rendering
@@ -39,7 +43,7 @@ const initCanvas = ({canvas, enableGridLine, enablePlot, enableDrawCenterLine}) 
   canvas.width = rect.width * dpr;
   canvas.height = rect.height * dpr;
   ctx.scale(dpr, dpr);
-  
+
   // 2. Calculate dimensions
   const canvasWidth = rect.width;
   const canvasHeight = rect.height;
@@ -49,6 +53,7 @@ const initCanvas = ({canvas, enableGridLine, enablePlot, enableDrawCenterLine}) 
 ### 2. Rendering Process
 
 #### Phase 1: Grid and Base Elements
+
 ```typescript
 // Optional: Draw grid lines for reference
 if (enableGridLine) {
@@ -65,6 +70,7 @@ if (enableDrawCenterLine) {
 ```
 
 #### Phase 2: Buy Side Rendering (Left Side, Green)
+
 ```typescript
 // Calculate positioning
 const gap = halfWidth / buyRowsWithRatio.length; // Space between price levels
@@ -73,14 +79,15 @@ const gap = halfWidth / buyRowsWithRatio.length; // Space between price levels
 for (let i = 0; i < buyRowsWithRatio.length; i++) {
   const x = halfWidth - (i + 1) * gap; // Position from center going left
   const y = canvasHeight * (1 - accumulation_amount_ratio); // Y position based on cumulative volume
-  
+
   // Create step-like path (horizontal then vertical lines)
   if (i === 0) {
     ctx.lineTo(x, y);
   } else {
-    const prevY = canvasHeight * (1 - buyRowsWithRatio[i - 1].accumulation_amount_ratio);
+    const prevY =
+      canvasHeight * (1 - buyRowsWithRatio[i - 1].accumulation_amount_ratio);
     ctx.lineTo(x, prevY); // Horizontal step
-    ctx.lineTo(x, y);     // Vertical step
+    ctx.lineTo(x, y); // Vertical step
   }
 }
 
@@ -95,6 +102,7 @@ ctx.stroke();
 ```
 
 #### Phase 3: Sell Side Rendering (Right Side, Red)
+
 ```typescript
 // Similar process but mirrored for sell orders
 const gap = halfWidth / sellRowsWithRatio.length;
@@ -103,7 +111,7 @@ const gap = halfWidth / sellRowsWithRatio.length;
 for (let i = 0; i < sellRowsWithRatio.length; i++) {
   const x = halfWidth + (i + 1) * gap; // Position from center going right
   const y = canvasHeight * (1 - accumulation_amount_ratio);
-  
+
   // Create step-like path
   // ... similar logic but moving rightward
 }
@@ -114,17 +122,18 @@ for (let i = 0; i < sellRowsWithRatio.length; i++) {
 ### 3. Interactive Features
 
 #### Mouse Event Handling
+
 ```typescript
 const handleMouseMove = (e: MouseEvent) => {
   // 1. Get mouse position relative to canvas
   const rect = canvas.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
-  
+
   // 2. Find nearest data point
   const allPoints = [...buyPoints, ...sellPoints];
-  const distances = allPoints.map(p => Math.abs(p.x - mouseX));
+  const distances = allPoints.map((p) => Math.abs(p.x - mouseX));
   const nearestIndex = distances.indexOf(Math.min(...distances));
-  
+
   // 3. Update hover state if within threshold
   if (nearestDistance < threshold) {
     setHoverIndex(adjustedIndex);
@@ -134,19 +143,20 @@ const handleMouseMove = (e: MouseEvent) => {
 ```
 
 #### Hover Effects Rendering
+
 ```typescript
 if (hoverIndex !== null) {
   // Draw dashed guide lines
   ctx.setLineDash([4, 2]);
-  
+
   // Vertical line from top to bottom
   ctx.moveTo(point.x, 0);
   ctx.lineTo(point.x, canvasHeight);
-  
+
   // Horizontal line from point to center
   ctx.moveTo(point.x, point.y);
   ctx.lineTo(canvasWidth / 2, point.y);
-  
+
   // Fill hover area (left or right side)
   if (side === 'buy') {
     ctx.fillRect(0, 0, point.x, canvasHeight); // Fill left area
@@ -159,6 +169,7 @@ if (hoverIndex !== null) {
 ## Key Concepts Explained
 
 ### 1. Coordinate System
+
 ```
 Canvas Coordinates:
 - Origin (0,0) is top-left corner
@@ -174,10 +185,11 @@ Chart Logic:
 ### 2. Data Transformation
 
 #### Accumulation Process
+
 ```typescript
 // Example: Buy orders transformation with combined total calculation
 Input:  [{ price: '95000', quantity: '0.5' }, { price: '94000', quantity: '1.2' }]
-Step 1: [{ price: '95000', quantity: '0.5', quantity_total: '0.5' }, 
+Step 1: [{ price: '95000', quantity: '0.5', quantity_total: '0.5' },
          { price: '94000', quantity: '1.2', quantity_total: '1.7' }]
 
 // Calculate combined total: buyTotal (1.7) + sellTotal (2.5) = 4.2
@@ -186,6 +198,7 @@ Step 2: [{ price: '95000', quantity: '0.5', quantity_total: '0.5', accumulation_
 ```
 
 #### Y-Position Calculation
+
 ```typescript
 // Convert ratio to canvas Y coordinate
 const y = canvasHeight * (1 - accumulation_amount_ratio);
@@ -212,11 +225,12 @@ if (i === 0) {
   ctx.lineTo(x, y); // Direct line to first point
 } else {
   ctx.lineTo(x, prevY); // Horizontal line (maintain previous volume)
-  ctx.lineTo(x, y);     // Vertical line (step to new volume)
+  ctx.lineTo(x, y); // Vertical line (step to new volume)
 }
 ```
 
 This creates the characteristic staircase appearance where:
+
 - Horizontal segments = volume at that price level
 - Vertical segments = transitions between price levels
 
@@ -230,22 +244,22 @@ const BasicDepthChart = () => {
   // State management
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [hoverSide, setHoverSide] = useState<'buy' | 'sell' | null>(null);
-  
+
   // Data preparation
   const buyRowsWithRatio = preprocessBuyData();
   const sellRowsWithRatio = preprocessSellData();
-  
+
   // Canvas rendering function
   const initCanvas = useCallback(() => {
     // Canvas setup → Grid → Buy side → Sell side → Interactions
   }, [dependencies]);
-  
+
   // Effect to trigger rendering
   useEffect(() => {
-    const cleanup = initCanvas({canvas, options});
+    const cleanup = initCanvas({ canvas, options });
     return cleanup;
   }, [initCanvas]);
-  
+
   return (
     <Box>
       <Canvas ref={canvasRef} />
@@ -259,9 +273,9 @@ const BasicDepthChart = () => {
 
 ```typescript
 interface OrderBookWithRatio {
-  price: string;           // Price level (e.g., '95000')
-  quantity: string;        // Volume at this level (e.g., '0.5')
-  quantity_total: string;  // Cumulative volume up to this level
+  price: string; // Price level (e.g., '95000')
+  quantity: string; // Volume at this level (e.g., '0.5')
+  quantity_total: string; // Cumulative volume up to this level
   accumulation_amount_ratio: number; // 0-1 ratio for Y positioning
 }
 
@@ -274,6 +288,7 @@ interface OrderBookWithPoint extends OrderBookWithRatio {
 ## Usage Examples
 
 ### Basic Usage
+
 ```typescript
 import BasicDepthChart from './BasicDepthChart';
 
@@ -285,40 +300,47 @@ import BasicDepthChart from './BasicDepthChart';
 ```
 
 ### Integration with Real Data
+
 ```typescript
 // Transform your order book data with combined total calculation
 const processOrderBookData = (buyOrders, sellOrders) => {
   // Calculate individual totals
-  const buyTotal = buyOrders.reduce((sum, o) => sum + parseFloat(o.quantity), 0);
-  const sellTotal = sellOrders.reduce((sum, o) => sum + parseFloat(o.quantity), 0);
+  const buyTotal = buyOrders.reduce(
+    (sum, o) => sum + parseFloat(o.quantity),
+    0
+  );
+  const sellTotal = sellOrders.reduce(
+    (sum, o) => sum + parseFloat(o.quantity),
+    0
+  );
   const combinedTotal = buyTotal + sellTotal;
-  
+
   // Process buy orders
   const processedBuyOrders = buyOrders.map((order, index, arr) => {
     const cumulativeQuantity = arr
       .slice(0, index + 1)
       .reduce((sum, o) => sum + parseFloat(o.quantity), 0);
-    
+
     return {
       ...order,
       quantity_total: cumulativeQuantity.toString(),
-      accumulation_amount_ratio: cumulativeQuantity / combinedTotal
+      accumulation_amount_ratio: cumulativeQuantity / combinedTotal,
     };
   });
-  
+
   // Process sell orders
   const processedSellOrders = sellOrders.map((order, index, arr) => {
     const cumulativeQuantity = arr
       .slice(0, index + 1)
       .reduce((sum, o) => sum + parseFloat(o.quantity), 0);
-    
+
     return {
       ...order,
       quantity_total: cumulativeQuantity.toString(),
-      accumulation_amount_ratio: cumulativeQuantity / combinedTotal
+      accumulation_amount_ratio: cumulativeQuantity / combinedTotal,
     };
   });
-  
+
   return { buyOrders: processedBuyOrders, sellOrders: processedSellOrders };
 };
 ```
@@ -333,6 +355,7 @@ const processOrderBookData = (buyOrders, sellOrders) => {
 ## Customization Options
 
 The `initCanvas` function accepts configuration options:
+
 - `enableGridLine`: Show background grid for reference
 - `enablePlot`: Show individual data points as dots
 - `enableDrawCenterLine`: Show vertical line separating buy/sell sides
@@ -346,22 +369,53 @@ The component uses realistic dummy data to demonstrate functionality:
 
 // Buy orders (bids) - decreasing prices, 15 levels
 const buyRowsWithRatio = [
-  { price: '95500', quantity: '0.2', quantity_total: '0.2', accumulation_amount_ratio: 0.2/18.0 }, // ~0.011
-  { price: '95000', quantity: '1.1', quantity_total: '3.4', accumulation_amount_ratio: 3.4/18.0 }, // ~0.189
-  { price: '94100', quantity: '0.4', quantity_total: '10.0', accumulation_amount_ratio: 10.0/18.0 }, // ~0.556
+  {
+    price: '95500',
+    quantity: '0.2',
+    quantity_total: '0.2',
+    accumulation_amount_ratio: 0.2 / 18.0,
+  }, // ~0.011
+  {
+    price: '95000',
+    quantity: '1.1',
+    quantity_total: '3.4',
+    accumulation_amount_ratio: 3.4 / 18.0,
+  }, // ~0.189
+  {
+    price: '94100',
+    quantity: '0.4',
+    quantity_total: '10.0',
+    accumulation_amount_ratio: 10.0 / 18.0,
+  }, // ~0.556
   // ... 15 levels total
 ];
 
 // Sell orders (asks) - increasing prices, 15 levels
 const sellRowsWithRatio = [
-  { price: '95600', quantity: '0.1', quantity_total: '0.1', accumulation_amount_ratio: 0.1/18.0 }, // ~0.006
-  { price: '96000', quantity: '0.5', quantity_total: '1.5', accumulation_amount_ratio: 1.5/18.0 }, // ~0.083
-  { price: '97000', quantity: '0.3', quantity_total: '8.0', accumulation_amount_ratio: 8.0/18.0 }, // ~0.444
+  {
+    price: '95600',
+    quantity: '0.1',
+    quantity_total: '0.1',
+    accumulation_amount_ratio: 0.1 / 18.0,
+  }, // ~0.006
+  {
+    price: '96000',
+    quantity: '0.5',
+    quantity_total: '1.5',
+    accumulation_amount_ratio: 1.5 / 18.0,
+  }, // ~0.083
+  {
+    price: '97000',
+    quantity: '0.3',
+    quantity_total: '8.0',
+    accumulation_amount_ratio: 8.0 / 18.0,
+  }, // ~0.444
   // ... 15 levels total
 ];
 ```
 
 **Key Points:**
+
 - Y-axis represents combined market depth (18.0 BTC total)
 - Buy side reaches ~55.6% of chart height (more liquidity)
 - Sell side reaches ~44.4% of chart height (less liquidity)

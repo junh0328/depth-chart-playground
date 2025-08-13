@@ -1,5 +1,7 @@
 # 뎁스 차트 구현 가이드
 
+## [Start with vercel](https://depth-chart-playground.vercel.app/)
+
 ## 개요
 
 뎁스 차트는 주문장 데이터의 시각적 표현으로, 다양한 가격 수준에서의 누적 매수 및 매도 주문을 보여줍니다. 트레이더들이 시장 유동성과 잠재적 지지/저항 수준을 이해하는 데 도움을 줍니다.
@@ -13,6 +15,7 @@
 ```
 
 #### 1단계: 데이터 준비
+
 ```typescript
 // 원시 주문장 데이터
 const rawBuyOrders = [
@@ -31,6 +34,7 @@ const buyOrdersWithRatio = calculateRatios(buyOrdersWithTotal);
 ```
 
 #### 2단계: 캔버스 설정
+
 ```typescript
 const initCanvas = ({canvas, enableGridLine, enablePlot, enableDrawCenterLine}) => {
   // 1. 캔버스 컨텍스트 가져오기 및 고해상도 렌더링 설정
@@ -39,7 +43,7 @@ const initCanvas = ({canvas, enableGridLine, enablePlot, enableDrawCenterLine}) 
   canvas.width = rect.width * dpr;
   canvas.height = rect.height * dpr;
   ctx.scale(dpr, dpr);
-  
+
   // 2. 치수 계산
   const canvasWidth = rect.width;
   const canvasHeight = rect.height;
@@ -49,6 +53,7 @@ const initCanvas = ({canvas, enableGridLine, enablePlot, enableDrawCenterLine}) 
 ### 2. 렌더링 과정
 
 #### 1단계: 그리드 및 기본 요소
+
 ```typescript
 // 선택사항: 참조용 그리드 라인 그리기
 if (enableGridLine) {
@@ -65,6 +70,7 @@ if (enableDrawCenterLine) {
 ```
 
 #### 2단계: 매수 측 렌더링 (왼쪽, 녹색)
+
 ```typescript
 // 위치 계산
 const gap = halfWidth / buyRowsWithRatio.length; // 가격 수준 간 간격
@@ -73,14 +79,15 @@ const gap = halfWidth / buyRowsWithRatio.length; // 가격 수준 간 간격
 for (let i = 0; i < buyRowsWithRatio.length; i++) {
   const x = halfWidth - (i + 1) * gap; // 중심에서 왼쪽으로 위치
   const y = canvasHeight * (1 - accumulation_amount_ratio); // 누적 거래량 기반 Y 위치
-  
+
   // 계단식 경로 생성 (수평선 다음 수직선)
   if (i === 0) {
     ctx.lineTo(x, y);
   } else {
-    const prevY = canvasHeight * (1 - buyRowsWithRatio[i - 1].accumulation_amount_ratio);
+    const prevY =
+      canvasHeight * (1 - buyRowsWithRatio[i - 1].accumulation_amount_ratio);
     ctx.lineTo(x, prevY); // 수평 단계
-    ctx.lineTo(x, y);     // 수직 단계
+    ctx.lineTo(x, y); // 수직 단계
   }
 }
 
@@ -95,6 +102,7 @@ ctx.stroke();
 ```
 
 #### 3단계: 매도 측 렌더링 (오른쪽, 빨간색)
+
 ```typescript
 // 매도 주문에 대해서도 비슷한 과정이지만 미러링됨
 const gap = halfWidth / sellRowsWithRatio.length;
@@ -103,7 +111,7 @@ const gap = halfWidth / sellRowsWithRatio.length;
 for (let i = 0; i < sellRowsWithRatio.length; i++) {
   const x = halfWidth + (i + 1) * gap; // 중심에서 오른쪽으로 위치
   const y = canvasHeight * (1 - accumulation_amount_ratio);
-  
+
   // 계단식 경로 생성
   // ... 비슷한 로직이지만 오른쪽으로 이동
 }
@@ -114,17 +122,18 @@ for (let i = 0; i < sellRowsWithRatio.length; i++) {
 ### 3. 상호작용 기능
 
 #### 마우스 이벤트 처리
+
 ```typescript
 const handleMouseMove = (e: MouseEvent) => {
   // 1. 캔버스 기준 마우스 위치 가져오기
   const rect = canvas.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
-  
+
   // 2. 가장 가까운 데이터 포인트 찾기
   const allPoints = [...buyPoints, ...sellPoints];
-  const distances = allPoints.map(p => Math.abs(p.x - mouseX));
+  const distances = allPoints.map((p) => Math.abs(p.x - mouseX));
   const nearestIndex = distances.indexOf(Math.min(...distances));
-  
+
   // 3. 임계값 내에 있으면 호버 상태 업데이트
   if (nearestDistance < threshold) {
     setHoverIndex(adjustedIndex);
@@ -134,19 +143,20 @@ const handleMouseMove = (e: MouseEvent) => {
 ```
 
 #### 호버 효과 렌더링
+
 ```typescript
 if (hoverIndex !== null) {
   // 점선 가이드 라인 그리기
   ctx.setLineDash([4, 2]);
-  
+
   // 위에서 아래로 수직선
   ctx.moveTo(point.x, 0);
   ctx.lineTo(point.x, canvasHeight);
-  
+
   // 포인트에서 중심까지 수평선
   ctx.moveTo(point.x, point.y);
   ctx.lineTo(canvasWidth / 2, point.y);
-  
+
   // 호버 영역 채우기 (왼쪽 또는 오른쪽)
   if (side === 'buy') {
     ctx.fillRect(0, 0, point.x, canvasHeight); // 왼쪽 영역 채우기
@@ -159,6 +169,7 @@ if (hoverIndex !== null) {
 ## 주요 개념 설명
 
 ### 1. 좌표계
+
 ```
 캔버스 좌표:
 - 원점 (0,0)은 왼쪽 상단 모서리
@@ -174,10 +185,11 @@ if (hoverIndex !== null) {
 ### 2. 데이터 변환
 
 #### 누적 과정
+
 ```typescript
 // 예시: 매수 주문 변환 (통합 총량 계산 포함)
 입력:    [{ price: '95000', quantity: '0.5' }, { price: '94000', quantity: '1.2' }]
-1단계:   [{ price: '95000', quantity: '0.5', quantity_total: '0.5' }, 
+1단계:   [{ price: '95000', quantity: '0.5', quantity_total: '0.5' },
          { price: '94000', quantity: '1.2', quantity_total: '1.7' }]
 
 // 통합 총량 계산: 매수총량(1.7) + 매도총량(2.5) = 4.2
@@ -186,6 +198,7 @@ if (hoverIndex !== null) {
 ```
 
 #### Y 위치 계산
+
 ```typescript
 // 비율을 캔버스 Y 좌표로 변환
 const y = canvasHeight * (1 - accumulation_amount_ratio);
@@ -212,11 +225,12 @@ if (i === 0) {
   ctx.lineTo(x, y); // 첫 번째 포인트로 직접 선
 } else {
   ctx.lineTo(x, prevY); // 수평선 (이전 거래량 유지)
-  ctx.lineTo(x, y);     // 수직선 (새로운 거래량으로 단계)
+  ctx.lineTo(x, y); // 수직선 (새로운 거래량으로 단계)
 }
 ```
 
 이것이 특징적인 계단식 모양을 만드는데:
+
 - 수평 세그먼트 = 해당 가격 수준의 거래량
 - 수직 세그먼트 = 가격 수준 간 전환
 
@@ -230,22 +244,22 @@ const BasicDepthChart = () => {
   // 상태 관리
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [hoverSide, setHoverSide] = useState<'buy' | 'sell' | null>(null);
-  
+
   // 데이터 준비
   const buyRowsWithRatio = preprocessBuyData();
   const sellRowsWithRatio = preprocessSellData();
-  
+
   // 캔버스 렌더링 함수
   const initCanvas = useCallback(() => {
     // 캔버스 설정 → 그리드 → 매수 측 → 매도 측 → 상호작용
   }, [dependencies]);
-  
+
   // 렌더링 트리거 효과
   useEffect(() => {
-    const cleanup = initCanvas({canvas, options});
+    const cleanup = initCanvas({ canvas, options });
     return cleanup;
   }, [initCanvas]);
-  
+
   return (
     <Box>
       <Canvas ref={canvasRef} />
@@ -259,9 +273,9 @@ const BasicDepthChart = () => {
 
 ```typescript
 interface OrderBookWithRatio {
-  price: string;           // 가격 수준 (예: '95000')
-  quantity: string;        // 이 수준의 거래량 (예: '0.5')
-  quantity_total: string;  // 이 수준까지의 누적 거래량
+  price: string; // 가격 수준 (예: '95000')
+  quantity: string; // 이 수준의 거래량 (예: '0.5')
+  quantity_total: string; // 이 수준까지의 누적 거래량
   accumulation_amount_ratio: number; // Y 위치 지정을 위한 0-1 비율
 }
 
@@ -274,6 +288,7 @@ interface OrderBookWithPoint extends OrderBookWithRatio {
 ## 사용 예시
 
 ### 기본 사용법
+
 ```typescript
 import BasicDepthChart from './BasicDepthChart';
 
@@ -285,40 +300,47 @@ import BasicDepthChart from './BasicDepthChart';
 ```
 
 ### 실제 데이터와 통합
+
 ```typescript
 // 주문장 데이터 변환 (통합 총량 계산 포함)
 const processOrderBookData = (buyOrders, sellOrders) => {
   // 개별 총량 계산
-  const buyTotal = buyOrders.reduce((sum, o) => sum + parseFloat(o.quantity), 0);
-  const sellTotal = sellOrders.reduce((sum, o) => sum + parseFloat(o.quantity), 0);
+  const buyTotal = buyOrders.reduce(
+    (sum, o) => sum + parseFloat(o.quantity),
+    0
+  );
+  const sellTotal = sellOrders.reduce(
+    (sum, o) => sum + parseFloat(o.quantity),
+    0
+  );
   const combinedTotal = buyTotal + sellTotal;
-  
+
   // 매수 주문 처리
   const processedBuyOrders = buyOrders.map((order, index, arr) => {
     const cumulativeQuantity = arr
       .slice(0, index + 1)
       .reduce((sum, o) => sum + parseFloat(o.quantity), 0);
-    
+
     return {
       ...order,
       quantity_total: cumulativeQuantity.toString(),
-      accumulation_amount_ratio: cumulativeQuantity / combinedTotal
+      accumulation_amount_ratio: cumulativeQuantity / combinedTotal,
     };
   });
-  
+
   // 매도 주문 처리
   const processedSellOrders = sellOrders.map((order, index, arr) => {
     const cumulativeQuantity = arr
       .slice(0, index + 1)
       .reduce((sum, o) => sum + parseFloat(o.quantity), 0);
-    
+
     return {
       ...order,
       quantity_total: cumulativeQuantity.toString(),
-      accumulation_amount_ratio: cumulativeQuantity / combinedTotal
+      accumulation_amount_ratio: cumulativeQuantity / combinedTotal,
     };
   });
-  
+
   return { buyOrders: processedBuyOrders, sellOrders: processedSellOrders };
 };
 ```
@@ -333,6 +355,7 @@ const processOrderBookData = (buyOrders, sellOrders) => {
 ## 커스터마이징 옵션
 
 `initCanvas` 함수는 구성 옵션을 받습니다:
+
 - `enableGridLine`: 참조용 배경 그리드 표시
 - `enablePlot`: 개별 데이터 포인트를 점으로 표시
 - `enableDrawCenterLine`: 매수/매도 구분하는 수직선 표시
@@ -346,22 +369,53 @@ const processOrderBookData = (buyOrders, sellOrders) => {
 
 // 매수 주문 (입찰) - 가격 내림차순, 15개 수준
 const buyRowsWithRatio = [
-  { price: '95500', quantity: '0.2', quantity_total: '0.2', accumulation_amount_ratio: 0.2/18.0 }, // ~0.011
-  { price: '95000', quantity: '1.1', quantity_total: '3.4', accumulation_amount_ratio: 3.4/18.0 }, // ~0.189
-  { price: '94100', quantity: '0.4', quantity_total: '10.0', accumulation_amount_ratio: 10.0/18.0 }, // ~0.556
+  {
+    price: '95500',
+    quantity: '0.2',
+    quantity_total: '0.2',
+    accumulation_amount_ratio: 0.2 / 18.0,
+  }, // ~0.011
+  {
+    price: '95000',
+    quantity: '1.1',
+    quantity_total: '3.4',
+    accumulation_amount_ratio: 3.4 / 18.0,
+  }, // ~0.189
+  {
+    price: '94100',
+    quantity: '0.4',
+    quantity_total: '10.0',
+    accumulation_amount_ratio: 10.0 / 18.0,
+  }, // ~0.556
   // ... 총 15개 수준
 ];
 
 // 매도 주문 (매도호가) - 가격 오름차순, 15개 수준
 const sellRowsWithRatio = [
-  { price: '95600', quantity: '0.1', quantity_total: '0.1', accumulation_amount_ratio: 0.1/18.0 }, // ~0.006
-  { price: '96000', quantity: '0.5', quantity_total: '1.5', accumulation_amount_ratio: 1.5/18.0 }, // ~0.083
-  { price: '97000', quantity: '0.3', quantity_total: '8.0', accumulation_amount_ratio: 8.0/18.0 }, // ~0.444
+  {
+    price: '95600',
+    quantity: '0.1',
+    quantity_total: '0.1',
+    accumulation_amount_ratio: 0.1 / 18.0,
+  }, // ~0.006
+  {
+    price: '96000',
+    quantity: '0.5',
+    quantity_total: '1.5',
+    accumulation_amount_ratio: 1.5 / 18.0,
+  }, // ~0.083
+  {
+    price: '97000',
+    quantity: '0.3',
+    quantity_total: '8.0',
+    accumulation_amount_ratio: 8.0 / 18.0,
+  }, // ~0.444
   // ... 총 15개 수준
 ];
 ```
 
 **주요 포인트:**
+
 - Y축은 통합 시장 깊이를 나타냄 (총 18.0 BTC)
 - 매수 측은 차트 높이의 ~55.6%에 도달 (더 많은 유동성)
 - 매도 측은 차트 높이의 ~44.4%에 도달 (더 적은 유동성)
