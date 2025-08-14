@@ -6,6 +6,7 @@ import { styled } from '@mui/material/styles';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { OrderBookWithPoint } from './type';
 import { buyRowsWithRatio, sellRowsWithRatio } from './constant';
+import { formatNumber } from '../../lib/NumberFormatter';
 
 // Dummy theme colors (simplified)
 const dummyTheme = {
@@ -494,10 +495,10 @@ const BasicDepthChart = ({
             <Switch
               checked={enableGridLine}
               onChange={(e) => setEnableGridLine(e.target.checked)}
-              size="small"
+              size='small'
             />
           }
-          label="Grid"
+          label='Grid'
           sx={{ fontSize: { xs: '10px', sm: '12px' } }}
         />
         <FormControlLabel
@@ -505,10 +506,10 @@ const BasicDepthChart = ({
             <Switch
               checked={enablePlot}
               onChange={(e) => setEnablePlot(e.target.checked)}
-              size="small"
+              size='small'
             />
           }
-          label="Points"
+          label='Points'
           sx={{ fontSize: { xs: '10px', sm: '12px' } }}
         />
         <FormControlLabel
@@ -516,10 +517,10 @@ const BasicDepthChart = ({
             <Switch
               checked={enableDrawCenterLine}
               onChange={(e) => setEnableDrawCenterLine(e.target.checked)}
-              size="small"
+              size='small'
             />
           }
-          label="Center"
+          label='Center'
           sx={{ fontSize: { xs: '10px', sm: '12px' } }}
         />
       </Box>
@@ -570,16 +571,54 @@ const BasicDepthChart = ({
           <div>Index: {hoverIndex}</div>
           {hoverSide === 'buy' && buyRowsWithRatio[hoverIndex] && (
             <>
-              <div>Price: ${buyRowsWithRatio[hoverIndex].price}</div>
-              <div>Quantity: {buyRowsWithRatio[hoverIndex].quantity}</div>
-              <div>Total: {buyRowsWithRatio[hoverIndex].quantity_total}</div>
+              <div>
+                Price:{' '}
+                {formatNumber({
+                  value: buyRowsWithRatio[hoverIndex].price,
+                  prefix: '$',
+                  decimalPlaces: 2,
+                })}
+              </div>
+              <div>
+                Quantity:{' '}
+                {formatNumber({
+                  value: buyRowsWithRatio[hoverIndex].quantity,
+                  decimalPlaces: 4,
+                })}
+              </div>
+              <div>
+                Total:{' '}
+                {formatNumber({
+                  value: buyRowsWithRatio[hoverIndex].quantity_total,
+                  decimalPlaces: 4,
+                })}
+              </div>
             </>
           )}
           {hoverSide === 'sell' && sellRowsWithRatio[hoverIndex] && (
             <>
-              <div>Price: ${sellRowsWithRatio[hoverIndex].price}</div>
-              <div>Quantity: {sellRowsWithRatio[hoverIndex].quantity}</div>
-              <div>Total: {sellRowsWithRatio[hoverIndex].quantity_total}</div>
+              <div>
+                Price:{' '}
+                {formatNumber({
+                  value: sellRowsWithRatio[hoverIndex].price,
+                  prefix: '$',
+                  decimalPlaces: 2,
+                })}
+              </div>
+              <div>
+                Quantity:{' '}
+                {formatNumber({
+                  value: sellRowsWithRatio[hoverIndex].quantity,
+                  decimalPlaces: 4,
+                })}
+              </div>
+              <div>
+                Total:{' '}
+                {formatNumber({
+                  value: sellRowsWithRatio[hoverIndex].quantity_total,
+                  decimalPlaces: 4,
+                })}
+              </div>
             </>
           )}
         </Box>
@@ -599,7 +638,10 @@ const BasicDepthChart = ({
         <span style={{ color: dummyTheme.upColor }}>
           Buy Orders (15 levels)
         </span>
-        <span>Current Price: ~$95,550</span>
+        <span>
+          Current Price: ~{formatNumber({ value: 95550, prefix: '$' })}
+          {/* <NumberFormatter value={95550} prefix='$' /> */}
+        </span>
         <span style={{ color: dummyTheme.downColor }}>
           Sell Orders (15 levels)
         </span>
